@@ -8,14 +8,14 @@ from team.models import Team
 class TeamChampionshipStats(models.Model):
     championship = models.ForeignKey(
         Championship,
-        null=False,
+        null=True,
         blank=False,
         on_delete=models.SET_NULL,
         related_name="championship_stats"
     )
     team = models.ForeignKey(
         Team,
-        null=False,
+        null=True,
         blank=False,
         on_delete=models.SET_NULL,
         related_name="championship_stats"
