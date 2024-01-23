@@ -20,7 +20,6 @@ def transform_league_tables() -> str:
             name="Premier League"
         )
         championship.save()
-        print(championship)
 
         for index, row in df.iterrows():
             if row['Season_End_Year'] == first_year:

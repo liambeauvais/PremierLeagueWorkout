@@ -11,5 +11,5 @@ class DataViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = None
 
     @action(detail=False, methods=['GET'])
-    def premier_league(self, request):
+    def premier_league_stats(self, request):
         return HttpResponse(transform_league_tables())
