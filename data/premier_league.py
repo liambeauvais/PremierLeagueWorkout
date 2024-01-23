@@ -4,6 +4,7 @@ from datetime import datetime
 import pandas as pd
 
 from championship.models import Championship
+from match.models import Match
 from team.models import Team
 from team_championship_stats.models import TeamChampionshipStats
 
@@ -47,4 +48,52 @@ def transform_league_tables() -> str:
                 )
 
         first_year += 1
+    return "OK"
+
+
+def transform_league_matches():
+    matches_done = len(Match.objects.filter(championship__name="Premier League").all()) > 0
+    if matches_done:
+        return "Already Done"
+
+    df = pd.read_csv(f'{os.environ.get("ABSOLUTE_PATH")}/data/premier-league-matches.csv')
+    first_year: int = 1993
+
+    while first_year <= datetime.now().year:
+        championship: Championship = Championship.objects.filter(
+            league_year=first_year,
+            name="Premier League"
+        )[0]
+        for index, row in df.iterrows():
+            league_year = row['Season_End_Year']
+            if league_year == first_year:
+                home: Team = Team.objects.filter(
+                    name=row['Home']
+                ).all()[0]
+
+                away: Team = Team.objects.filter(
+                    name=row['Away']
+                ).all()[0]
+
+                winner_filter = row['Home'] \
+                    if row['FTR'] == "H" \
+                    else row['Away'] \
+                    if row['FTR'] == 'A' \
+                    else None
+                winner: Team = Team.objects.filter(
+                    name=winner_filter
+                ).all()[0] if winner_filter is not None else None
+
+                Match.objects.create(
+                    championship_id=championship.id,
+                    home_id=home.id,
+                    away_id=away.id,
+                    date=datetime.strptime(row['Date'], '%Y-%m-%d'),
+                    week=row['Wk'],
+                    away_goals=row['AwayGoals'],
+                    home_goals=row['HomeGoals'],
+                    winner=winner
+                )
+        first_year += 1
+
     return "OK"
