@@ -1,0 +1,42 @@
+
+services:
+
+  db-pl:
+    image: postgres:15
+    restart: on-failure
+    volumes:
+      - ./database:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+
+  api-pl:
+    container_name: api-pl
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    tty: true
+    depends_on:
+      db-pl:
+        condition: service_healthy
+    ports:
+      - '8000:8000'
+    volumes:
+      - .:/api/
+    env_file:
+      - .env
+    command:
+      - /bin/sh
+      - -c
+      - |
+        python manage.py migrate
+        python manage.py runserver 0.0.0.0:8000
