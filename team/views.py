@@ -59,11 +59,11 @@ class TeamViewset(viewsets.ModelViewSet):
     @action(methods=['GET'], detail=False)
     def teams_longevity(self, request):
         queryset: list[Team] = self.get_queryset()
-        teams= [
+        teams = [
             {
                 "id": team.id,
                 "name": team.name,
-                "longevity_in_years":team.championship_stats.count()
+                "longevity_in_years": team.championship_stats.count()
             } for team in queryset
         ]
         teams = sorted(
@@ -72,4 +72,3 @@ class TeamViewset(viewsets.ModelViewSet):
             reverse=True
         )
         return Response(teams)
-
