@@ -16,11 +16,12 @@ class TeamSerializer(serializers.ModelSerializer):
 
 class GoalsSerializer(serializers.ModelSerializer):
     championship_year = serializers.CharField(source='championship.league_year')
+    team = TeamSerializer()
 
     class Meta:
         model = TeamChampionshipStats
         exclude = ['championship']
-        include = ['championship_year']
+        include = ['championship_year', 'team']
 
 
 class TeamChampionshipStatsViewset(viewsets.ModelViewSet):
@@ -38,7 +39,7 @@ class TeamChampionshipStatsViewset(viewsets.ModelViewSet):
         return Response(
             {
                 "winning_teams": serializer.data,
-                "count":winning_teams_count
+                "count": winning_teams_count
             }
         )
 
@@ -54,3 +55,22 @@ class TeamChampionshipStatsViewset(viewsets.ModelViewSet):
             response[index] = row['goals_for']
 
         return Response(response)
+
+    @action(methods=['GET'], detail=False)
+    def winners(self, request):
+        queryset: list[TeamChampionshipStats] = self.get_queryset()
+        winners: list[TeamChampionshipStats] = [
+            championship_stats for championship_stats in queryset
+            if championship_stats.rank == 1
+        ]
+
+        serializer = GoalsSerializer(winners, many=True)
+        return Response(
+            {
+                championship_stats['championship_year']: {
+                    "team": championship_stats['team'],
+                    "goals_for": championship_stats['goals_for'],
+                    "goals_against": championship_stats['goals_against']
+                }
+            } for championship_stats in serializer.data
+        )
