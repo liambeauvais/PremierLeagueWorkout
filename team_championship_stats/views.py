@@ -24,9 +24,17 @@ class GoalsSerializer(serializers.ModelSerializer):
         include = ['championship_year', 'team']
 
 
+class TeamChampionshipStatsSerializer(serializers.ModelSerializer):
+    championship = serializers.CharField(source="championship.league_year")
+
+    class Meta:
+        model = TeamChampionshipStats
+        exclude = ['id']
+
+
 class TeamChampionshipStatsViewset(viewsets.ModelViewSet):
     queryset = TeamChampionshipStats.objects.all()
-    serializer_class = None
+    serializer_class = TeamChampionshipStatsSerializer
 
     @action(methods=['GET'], detail=False)
     def winners_count(self, request):
@@ -48,7 +56,9 @@ class TeamChampionshipStatsViewset(viewsets.ModelViewSet):
         queryset = self.get_queryset()
         serializer = GoalsSerializer(queryset, many=True)
         df = pd.DataFrame(data=serializer.data)
-
+        df = df.drop(
+            columns=['team']
+        )
         goal_count: pd.DataFrame = df.groupby('championship_year').mean()
         response = {}
         for index, row in goal_count.iterrows():

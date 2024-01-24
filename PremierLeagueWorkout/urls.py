@@ -22,4 +22,5 @@ urlpatterns = [
     path('data/', include('data.urls')),
     path('championship_stats/', include('team_championship_stats.urls')),
     path('teams/', include('team.urls')),
+    path('matchs/', include('match.urls')),
 ]
